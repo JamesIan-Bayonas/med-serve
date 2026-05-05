@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreDispensationRequest;
 use Illuminate\Http\Request;
 use App\Services\DispensationService;
 use Exception;
@@ -15,21 +16,19 @@ class DispensationController extends Controller
      */
     public function __construct(DispensationService $dispensationService)
     {
+        $this->middleware('auth:sanctum');
         $this->dispensationService = $dispensationService;
     }
 
     /**
      * The 'store' method that your route in api.php is looking for.
      */
-    public function store(Request $request)
+    
+    public function store(StoreDispensationRequest $request)
     {
-        // 1. Validate the incoming request data
-        $request->validate([
-            'resident_id' => 'required|exists:users,id', // Update 'users' to 'residents' once that table is created
-            'medicine_id' => 'required|exists:medicine_batches,medicine_id',
-            'quantity' => 'required|integer|min:1',
-            'dosage_days' => 'required|integer|min:1'
-        ]);
+        // 1. Validation is now handled by StoreDispensationRequest
+
+        $validatedData = $request->validated();
 
         try {
             // 2. Call your FIFO Service Engine
@@ -37,13 +36,18 @@ class DispensationController extends Controller
                 $request->resident_id,
                 $request->medicine_id,
                 $request->quantity,
-                $request->dosage_days
+                $validatedData['resident_id'],
+                $validatedData['medicine_id'],
+                $validatedData['quantity'],
+                $validatedData['dosage_days'],
+                $request->user()->id // Pass the authenticated user's ID
             );
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Medicine dispensed successfully via FIFO.'
             ], 200);
+
 
         } catch (Exception $e) {
             // 3. Catch the "Dispensation Block" or "Insufficient Stock" errors
