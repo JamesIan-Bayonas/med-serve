@@ -16,7 +16,7 @@ class RolesAndPermissionsSeeder extends Seeder
         Permission::create(['name' => 'view patient records']);
 
         // 2. Create Roles and assign existing permissions
-        $admin = Role::create(['name' => 'Admin']); // e.g., Head Health Worker
+        $admin = Role::create(['name' => 'Admin']); // e.g., Head Hea   lth Worker
         $admin->givePermissionTo(Permission::all());
 
         $healthWorker = Role::create(['name' => 'Health Worker']);
