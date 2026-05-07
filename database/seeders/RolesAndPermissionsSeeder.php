@@ -5,24 +5,50 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        // 1. Create Permissions
-        Permission::create(['name' => 'dispense medicine']);
-        Permission::create(['name' => 'manage inventory']);
-        Permission::create(['name' => 'view patient records']);
+        // 1. IMPORTANT: Reset cached roles and permissions to prevent "old data" errors
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 2. Create Roles and assign existing permissions
-        $admin = Role::create(['name' => 'Admin']); // e.g., Head Hea   lth Worker
-        $admin->givePermissionTo(Permission::all());
+        // 2. CREATE THE PERMISSIONS FIRST
+        // Ensure these strings match the ones you use in your roles below EXACTLY.
+        $permissions = [
+            'manage users',
+            'manage patient records',
+            'manage health services',
+            'manage inventory',
+            'dispense medicine'
+        ];
 
-        $healthWorker = Role::create(['name' => 'Health Worker']);
-        $healthWorker->givePermissionTo(['dispense medicine', 'view patient records']);
+        foreach ($permissions as $permission) {
+            Permission::create(['name' => $permission]);
+        }
 
-        $resident = Role::create(['name' => 'Resident']);
-        // Residents usually only view their own data, so they might not need global permissions here.
+        // 3. CREATE ROLES AND ASSIGN THE PERMISSIONS
+        
+        // Admin
+        $admin = Role::create(['name' => 'Admin']);
+        // Note: Admin access is handled by the Gate::before in AppServiceProvider
+
+        // Health Staff (Nurse, Midwife, BHW)
+        $healthStaffPermissions = [
+            'manage patient records', 
+            'manage health services',   
+            'dispense medicine'
+        ];
+
+        Role::create(['name' => 'Nurse'])->givePermissionTo($healthStaffPermissions);
+        Role::create(['name' => 'Midwife'])->givePermissionTo($healthStaffPermissions);
+        Role::create(['name' => 'Barangay Health Worker'])->givePermissionTo($healthStaffPermissions);
+
+        // Inventory Staff
+        Role::create(['name' => 'Inventory Staff'])->givePermissionTo(['manage inventory']);
+
+        // Volunteer
+        Role::create(['name' => 'Volunteer'])->givePermissionTo(['dispense medicine']);
     }
 }
