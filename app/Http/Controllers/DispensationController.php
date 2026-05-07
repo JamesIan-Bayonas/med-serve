@@ -23,6 +23,7 @@ class DispensationController extends Controller
     /**
      * The 'store' method that your route in api.php is looking for.
      */
+    
     public function store(StoreDispensationRequest $request)
     {
         // 1. Validation is now handled by StoreDispensationRequest
@@ -32,6 +33,9 @@ class DispensationController extends Controller
         try {
             // 2. Call your FIFO Service Engine
             $this->dispensationService->processDispensation(
+                $request->resident_id,
+                $request->medicine_id,
+                $request->quantity,
                 $validatedData['resident_id'],
                 $validatedData['medicine_id'],
                 $validatedData['quantity'],
@@ -42,7 +46,8 @@ class DispensationController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Medicine dispensed successfully via FIFO.'
-            ]);
+            ], 200);
+
 
         } catch (Exception $e) {
             // 3. Catch the "Dispensation Block" or "Insufficient Stock" errors
