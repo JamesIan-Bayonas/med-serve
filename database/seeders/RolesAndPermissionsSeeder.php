@@ -11,12 +11,11 @@ class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. IMPORTANT: Reset cached roles and permissions to prevent "old data" errors
+        // 1. Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 2. CREATE THE PERMISSIONS FIRST
-        // Ensure these strings match the ones you use in your roles below EXACTLY.
-        $permissions = [
+        // 2. CREATE THE PERMISSIONS AND STORE THE OBJECTS IN AN ARRAY
+        $permissionsList = [
             'manage users',
             'manage patient records',
             'manage health services',
@@ -24,31 +23,38 @@ class RolesAndPermissionsSeeder extends Seeder
             'dispense medicine'
         ];
 
-        foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+        $permissions = [];
+        foreach ($permissionsList as $permissionName) {
+            // Store the newly created Eloquent model in the array
+            $permissions[$permissionName] = Permission::create([
+                'name' => $permissionName, 
+                'guard_name' => 'web'
+            ]);
         }
 
-        // 3. CREATE ROLES AND ASSIGN THE PERMISSIONS
+        // 3. CREATE ROLES AND ASSIGN THE PERMISSION OBJECTS (NOT STRINGS)
         
         // Admin
-        $admin = Role::create(['name' => 'Admin']);
-        // Note: Admin access is handled by the Gate::before in AppServiceProvider
+        Role::create(['name' => 'Admin', 'guard_name' => 'web']);
 
         // Health Staff (Nurse, Midwife, BHW)
-        $healthStaffPermissions = [
-            'manage patient records', 
-            'manage health services',   
-            'dispense medicine'
-        ];
+        // Pass the actual Model objects instead of strings
+        $healthStaffPermissions = collect([
+            $permissions['manage patient records'], 
+            $permissions['manage health services'],   
+            $permissions['dispense medicine']
+        ]);
 
-        Role::create(['name' => 'Nurse'])->givePermissionTo($healthStaffPermissions);
-        Role::create(['name' => 'Midwife'])->givePermissionTo($healthStaffPermissions);
-        Role::create(['name' => 'Barangay Health Worker'])->givePermissionTo($healthStaffPermissions);
+        Role::create(['name' => 'Nurse', 'guard_name' => 'web'])->syncPermissions($healthStaffPermissions);
+        Role::create(['name' => 'Midwife', 'guard_name' => 'web'])->syncPermissions($healthStaffPermissions);
+        Role::create(['name' => 'Barangay Health Worker', 'guard_name' => 'web'])->syncPermissions($healthStaffPermissions);
 
         // Inventory Staff
-        Role::create(['name' => 'Inventory Staff'])->givePermissionTo(['manage inventory']);
+        Role::create(['name' => 'Inventory Staff', 'guard_name' => 'web'])
+            ->givePermissionTo($permissions['manage inventory']);
 
         // Volunteer
-        Role::create(['name' => 'Volunteer'])->givePermissionTo(['dispense medicine']);
+        Role::create(['name' => 'Volunteer', 'guard_name' => 'web'])
+            ->givePermissionTo($permissions['dispense medicine']);
     }
 }
