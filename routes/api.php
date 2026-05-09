@@ -55,4 +55,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/dispense', [DispensationController::class, 'store']);
     });
 
+    // AC: Health staff can access patient records
+    Route::middleware('permission:manage patient records')->group(function () {
+        Route::get('/patients', [App\Http\Controllers\Api\PatientController::class, 'index']);
+        Route::post('/patients', [App\Http\Controllers\Api\PatientController::class, 'store']);
+        // Route::get('/patients/{patient}', ...) // We will add the Profile view next
+    });
+
 });
