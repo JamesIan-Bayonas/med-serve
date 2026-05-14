@@ -12,10 +12,10 @@ return new class extends Migration
             $table->id();
             $table->integer('medicine_id'); // Temporary simple ID for testing
             $table->string('batch_number');
-            $table->integer('initial_stock');
-            $table->integer('current_stock');
-            $table->timestamp('expiration_date')->nullable();
-            $table->timestamp('manufactured_date')->nullable();
+            $table->date('date_received');
+            $table->date('expiration_date');
+            $table->integer('quantity_received');
+            $table->integer('quantity_remaining');
             $table->timestamps();
         });
     }
