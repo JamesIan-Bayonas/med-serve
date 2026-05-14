@@ -9,7 +9,9 @@ class MedicineBatchController extends Controller
 {
     public function index()
     {
-        return MedicineBatch::all();
+        return response()->json([
+            'data' => MedicineBatch::all()
+        ]);
     }
 
     public function store(Request $request)

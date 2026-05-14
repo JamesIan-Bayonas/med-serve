@@ -11,9 +11,21 @@ import {
     ClipboardList,
 } from "lucide-react";
 
+// 1. The Data Contract
+interface MedicineBatch {
+    id: number;
+    medicine_id: number;
+    batch_number: string;
+    date_received: string; 
+    expiration_date: string;
+    quantity_received: number;
+    quantity_remaining: number;
+}
+
 export default function MedicineBatchesPage() {
-    const [batches, setBatches] = useState([]);
-    const [filteredBatches, setFilteredBatches] = useState([]);
+    // 2. Lock the state to the interface using <MedicineBatch[]>
+    const [batches, setBatches] = useState<MedicineBatch[]>([]);
+    const [filteredBatches, setFilteredBatches] = useState<MedicineBatch[]>([]);
     const [search, setSearch] = useState("");
     const [filterExpired, setFilterExpired] = useState(false);
 
@@ -31,11 +43,20 @@ export default function MedicineBatchesPage() {
 
     const fetchBatches = async () => {
         try {
-            const response = await axios.get("/batches");
+            // 1. Grab the digital ID card from the browser
+            const token = localStorage.getItem('medserve_token');
+            
+            // 2. Hit the full API URL and attach the headers
+            const response = await axios.get("http://127.0.0.1:8000/api/batches", {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
 
             setBatches(response.data);
             setFilteredBatches(response.data);
-        } catch (error) {
+        } catch (error: any) {
     console.error(error);
 
     if (error.response?.data?.message) {
@@ -46,13 +67,13 @@ export default function MedicineBatchesPage() {
 }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (
             !form.medicine_id ||
             !form.batch_number ||
-            !form.date_received ||
+            !form.date_received ||  
             !form.expiration_date ||
             !form.quantity_received
         ) {
@@ -66,9 +87,19 @@ export default function MedicineBatchesPage() {
                 quantity_remaining: form.quantity_received,
             };
 
+            // 1. Grab the token again for the submission
+            const token = localStorage.getItem('medserve_token');
+
+            // 2. Send the data to the API with the security headers attached
             const response = await axios.post(
-                "/batches",
-                submitData
+                "http://127.0.0.1:8000/api/batches",
+                submitData,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                }
             );
 
             const updatedBatches = [
@@ -88,13 +119,13 @@ export default function MedicineBatchesPage() {
             });
 
             alert("Medicine batch added successfully!");
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
             alert("Failed to add medicine batch");
         }
     };
 
-    const handleSearch = (e) => {
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
 
         setSearch(value);
@@ -666,133 +697,74 @@ export default function MedicineBatchesPage() {
     );
 }
 
-function InputField({
-    label,
-    type = "text",
-    value,
-    onChange,
-}) {
+// --- TYPESCRIPT INTERFACES FOR UI COMPONENTS ---
+
+interface InputFieldProps {
+    label: string;
+    type?: string;
+    value: string | number;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+function InputField({ label, type = "text", value, onChange }: InputFieldProps) {
     return (
         <div style={{ marginBottom: "16px" }}>
-            <label
-                style={{
-                    display: "block",
-                    marginBottom: "8px",
-                    fontWeight: "700",
-                    fontSize: "14px",
-                    color: "#0f172a",
-                }}
-            >
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "700", fontSize: "14px", color: "#0f172a" }}>
                 {label}
             </label>
-
             <input
                 type={type}
                 value={value}
                 onChange={onChange}
-                style={{
-                    width: "100%",
-                    height: "46px",
-                    borderRadius: "14px",
-                    border: "1px solid #d7dee7",
-                    padding: "0 14px",
-                    boxSizing: "border-box",
-                    fontSize: "14px",
-                    outline: "none",
-                }}
+                style={{ width: "100%", height: "46px", borderRadius: "14px", border: "1px solid #d7dee7", padding: "0 14px", boxSizing: "border-box", fontSize: "14px", outline: "none" }}
             />
         </div>
     );
 }
 
-function StatCard({
-    icon,
-    bg,
-    label,
-    value,
-    sub,
-}) {
+interface StatCardProps {
+    icon: React.ReactNode;
+    bg: string;
+    label: string;
+    value: number | string;
+    sub: string;
+}
+
+function StatCard({ icon, bg, label, value, sub }: StatCardProps) {
     return (
-        <div
-            style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-            }}
-        >
-            <div
-                style={{
-                    width: "52px",
-                    height: "52px",
-                    borderRadius: "16px",
-                    background: bg,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-            >
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "16px", background: bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {icon}
             </div>
-
             <div>
-                <div
-                    style={{
-                        fontSize: "14px",
-                        color: "#64748b",
-                    }}
-                >
-                    {label}
-                </div>
-
-                <div
-                    style={{
-                        fontSize: "18px",
-                        fontWeight: "800",
-                        color: "#0f172a",
-                    }}
-                >
-                    {value}
-                </div>
-
-                <div
-                    style={{
-                        fontSize: "12px",
-                        color: "#94a3b8",
-                    }}
-                >
-                    {sub}
-                </div>
+                <div style={{ fontSize: "14px", color: "#64748b" }}>{label}</div>
+                <div style={{ fontSize: "18px", fontWeight: "800", color: "#0f172a" }}>{value}</div>
+                <div style={{ fontSize: "12px", color: "#94a3b8" }}>{sub}</div>
             </div>
         </div>
     );
 }
 
-function Th({ children }) {
+interface ThProps {
+    children: React.ReactNode;
+}
+
+function Th({ children }: ThProps) {
     return (
-        <th
-            style={{
-                textAlign: "left",
-                padding: "0 20px",
-                fontSize: "13px",
-                color: "#64748b",
-                fontWeight: "700",
-            }}
-        >
+        <th style={{ textAlign: "left", padding: "0 20px", fontSize: "13px", color: "#64748b", fontWeight: "700" }}>
             {children}
         </th>
     );
 }
 
-function Td({ children, bold }) {
+interface TdProps {
+    children: React.ReactNode;
+    bold?: boolean; // The "?" makes this property optional, fixing Error 2741
+}
+
+function Td({ children, bold }: TdProps) {
     return (
-        <td
-            style={{
-                padding: "0 20px",
-                fontWeight: bold ? "700" : "500",
-                fontSize: "15px",
-                color: "#0f172a",
-            }}
-        >
+        <td style={{ padding: "0 20px", fontWeight: bold ? "700" : "500", fontSize: "15px", color: "#0f172a" }}>
             {children}
         </td>
     );

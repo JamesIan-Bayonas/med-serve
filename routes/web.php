@@ -22,13 +22,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::get('/test-batches', function () {
-
-    $batches = MedicineBatch::all();
-
-    return $batches;
-});
-
 Route::get('/add-batch', function () {
 
     MedicineBatch::create([
@@ -42,10 +35,6 @@ Route::get('/add-batch', function () {
 
     return 'Batch Added Successfully';
 });
-
-Route::get('/batches', [MedicineBatchController::class, 'index']);
-
-Route::post('/batches', [MedicineBatchController::class, 'store']);
 
 Route::get('/medicine-batches-page', function () {
     return Inertia::render('MedicineBatches');
