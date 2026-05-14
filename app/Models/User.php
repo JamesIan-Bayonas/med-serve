@@ -8,12 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; // 1. Import the Sanctum trait
 
 class User extends Authenticatable
 {
-    use HasRoles;
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    // 2. Add HasApiTokens to the list of used traits
+    use HasApiTokens, HasRoles, HasFactory, Notifiable; 
     
     /**
      * The attributes that are mass assignable.
@@ -24,7 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        ];
+    ];
 
     /**
      * The attributes that should be hidden for serialization.

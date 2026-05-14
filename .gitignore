@@ -24,3 +24,5 @@ Homestead.yaml
 Thumbs.db
 .git
 .env
+node_modules/
+medserve-frontend/node_modules/
