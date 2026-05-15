@@ -28,11 +28,16 @@ class HandleInertiaRequests extends Middleware
      * @return array<string, mixed>
      */
     public function share(Request $request): array
-{
-    return array_merge(parent::share($request), [
-        'flash' => [
-            'success' => fn () => $request->session()->get('success'),
-        ],
-    ]);
-}
+    {
+        return array_merge(parent::share($request), [
+            // RESTORE THE AUTH OBJECT
+            'auth' => [
+                // If a user is logged in, pass them to React along with their RBAC roles
+                'user' => $request->user() ? clone $request->user()->load('roles') : null,
+            ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+            ],
+        ]);
+    }
 }
