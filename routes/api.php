@@ -55,4 +55,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/dispense', [DispensationController::class, 'store']);
     });
 
+    // In routes/api.php
+    Route::middleware('permission:manage inventory')->group(function () {
+        Route::get('/batches', [\App\Http\Controllers\MedicineBatchController::class, 'index']);
+        Route::post('/batches', [\App\Http\Controllers\MedicineBatchController::class, 'store']);
+    });
+
 });
