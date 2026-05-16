@@ -54,8 +54,14 @@ export default function MedicineBatchesPage() {
                 }
             });
 
-            setBatches(response.data);
-            setFilteredBatches(response.data);
+            // DEFENSIVE CHECK: Laravel often wraps data in a 'data' object. 
+            // This ensures we always extract the raw array, avoiding the .filter() crash.
+            const apiData = Array.isArray(response.data) 
+                ? response.data 
+                : (response.data?.data || []);
+
+            setBatches(apiData);
+            setFilteredBatches(apiData);
         } catch (error: any) {
     console.error(error);
 
@@ -155,14 +161,17 @@ export default function MedicineBatchesPage() {
         setFilterExpired(!filterExpired);
     };
 
-    const totalBatches = batches.length;
+    // SAFETY NET: Fallback to an empty array if batches is somehow not an array
+    const safeBatches = Array.isArray(batches) ? batches : [];
 
-    const activeBatches = batches.filter(
+    const totalBatches = safeBatches.length;
+
+    const activeBatches = safeBatches.filter(
         (batch) =>
             new Date(batch.expiration_date) > new Date()
     ).length;
 
-    const expiredBatches = batches.filter(
+    const expiredBatches = safeBatches.filter(
         (batch) =>
             new Date(batch.expiration_date) <= new Date()
     ).length;
